@@ -57,9 +57,9 @@ def getRandomIdea(location = 'alexakidskills'):
     page = randint(1,totalPages)
     
     #load random page
-    print('Loading page ' + str(page))
-    r = requests.get(baseURL + str(page))
-    soup = BeautifulSoup(r.text,'html.parser')
+    #print('Loading page ' + str(page))
+    #r = requests.get(baseURL + str(page))
+    #soup = BeautifulSoup(r.text,'html.parser')
 
     #get submissions on page
     div = soup.find('div',attrs={'id':'submission-gallery'})
@@ -122,12 +122,6 @@ def on_intent(request, session):
     intent_name = request['intent']['name']
 
     #print("on_intent " +intent_name)
-    get_state(session)
-
-    if 'dialogState' in request:
-        #delegate to Alexa until dialog sequence is complete
-        if request['dialogState'] == "STARTED" or request['dialogState'] == "IN_PROGRESS":
-            return dialog_response("", False)
 
     # process the intents
     if intent_name == "getIdea":
@@ -144,16 +138,23 @@ def on_intent(request, session):
 
 def do_main_action(request, intent):
     #check for intent
-    if 'ideaType' and intent['slots'] in intent['slots']:
-        ideaType = intent['slots']['Item']['Value']
+    if 'ideaType' in intent['slots']:
+        print(intent['slots'])
+        print(intent['slots']['ideaType'])
+        ideaType = intent['slots']['ideaType']['value']
         print(ideaType)
         item = search(ideaType)
         location = item['location']
         idea = getRandomIdea(location)
-        name = idea['name']
-        tagline = idea['tagline']
+        name = idea['title']
+        tagline = idea['tagLine']
         #here is an idea: Math Maker. The tagline can be: Using this alexa skill you can easily generate multiplication and division problems.
-        msg = "Here is a ",ideaType, "idea: ", name, ". The tagline could be: ", tagline
+        msg = "Here is a " + ideaType + " idea: " + name + ". The tagline could be: " + tagline
+        print(msg)
+        
+        attributes = {}
+        return response(attributes, response_plain_text(msg, True))
+        
     else:
         return get_welcome_message()
 
@@ -183,7 +184,8 @@ def on_session_ended(request):
         end_reason = request['reason']
         print("on_session_ended reason: " + end_reason)
     else:
-    print("on_session_ended")
+        print("on_session_ended")
+    
 
 
 # --------------- response string formatters -----------------
@@ -191,7 +193,7 @@ def on_session_ended(request):
 def get_welcome_message():
     """ return a welcome message """
     welcomeMsg = ("Welcome to Is Meta. "
-    "I can give you an idea for a hackathon, a life hack skill, or a kids skill "
+    "I can give you an idea for a hackathon, a life hack skill, or a kids skill. "
     "What would you like to do? ")
 
     attributes = {}
